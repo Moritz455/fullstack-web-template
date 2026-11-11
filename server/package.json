@@ -1,0 +1,20 @@
+{
+  "name": "server",
+  "version": "1.0.1",
+  "description": "",
+  "main": "src/js/Server.mjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "clean:dist": "rm -rf dist",
+    "lint": "semistandard \"src/js/**/*.mjs\" | snazzy",
+    "format": "semistandard --fix \"src/js/**/*.mjs\" | snazzy",
+    "test": "mocha \"test/**/*.mjs\" ",
+    "start": "node src/js/Server.mjs 8080"
+  },
+  "dependencies": {
+    "express": "^4.21.1"
+  },
+  "type": "commonjs"
+}

@@ -1,0 +1,21 @@
+# JavaScript Files are formatted by semistandard
+*.js
+*.mjs
+*.cjs
+
+# Build Folder
+node_modules/
+package-lock.json
+webapp/dist/
+
+# IDE Folder
+.idea/
+.vscode/
+.git/
+.agents/
+AGENTS.md
+.gitattributes
+.gitignore
+.editorconfig
+.prettierignore
+.lesshintrc.json

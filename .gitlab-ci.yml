@@ -1,0 +1,127 @@
+image: node:22-alpine
+
+stages:
+  - lint
+  - test
+  - build
+  - studienleistung
+
+# Zentraler NPM-Cache, damit die einzelnen Stages die Pakete nicht jedes Mal neu herunterladen
+default:
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  before_script:
+    - npm ci --cache .npm --prefer-offline || npm install
+
+# ==========================================
+# STAGE 1: LINT & VORGABEN
+# ==========================================
+lint_code:
+  stage: lint
+  script:
+    - npm run lint
+
+check_restrictions:
+  stage: lint
+  script:
+    - |
+      if find webapp/src server/src -name "*.ts" 2>/dev/null | grep -q .; then
+        echo "FEHLER: TypeScript-Dateien gefunden!" && exit 1
+      fi
+      if grep -E '"(react|vue|@angular|jquery)"' package.json webapp/package.json server/package.json; then
+        echo "FEHLER: Verbotenes Framework in package.json gefunden!" && exit 1
+      fi
+
+# ==========================================
+# STAGE 2: AUTOMATISIERTE TESTS
+# ==========================================
+unit_tests:
+  stage: test
+  script:
+    - npm test
+
+# ==========================================
+# STAGE 3: REGULÄRER BUILD (DEBUG & PROD)
+# ==========================================
+build_debug:
+  stage: build
+  script:
+    - npm run debug
+
+build_production:
+  stage: build
+  script:
+    - npm run build
+  artifacts:
+    name: "webapp-dist-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - webapp/dist/
+    expire_in: 7 days
+
+# ==========================================
+# STAGE 4: STUDIENLEISTUNG ABNAHME-CHECKS
+# ==========================================
+studienleistung_checks:
+  stage: studienleistung
+  allow_failure: true
+  before_script:
+    - apk add --no-cache curl
+    - npm ci --cache .npm --prefer-offline || npm install
+  script:
+    # 1. Negativtest: Abbruch von debug und build bei semistandard-Fehlern erzwingen
+    - mkdir -p server/src/js
+    - echo "const broken = 'missing semicolon'" > server/src/js/TempBroken.mjs
+    - |
+      if npm run debug; then
+        echo "FEHLER: npm run debug ist trotz semistandard-Fehler nicht abgebrochen!"
+        rm -f server/src/js/TempBroken.mjs
+        exit 1
+      fi
+      if npm run build; then
+        echo "FEHLER: npm run build ist trotz semistandard-Fehler nicht abgebrochen!"
+        rm -f server/src/js/TempBroken.mjs
+        exit 1
+      fi
+    - rm -f server/src/js/TempBroken.mjs
+
+    # 2. Debug-Build & Dateianzahl-Prüfung (exakt 1x HTML, 1x CSS, 1x JS)
+    - npm run debug
+    - test $(find webapp/dist -type f -name "*.html" | wc -l) -eq 1
+    - test $(find webapp/dist -type f -name "*.css" | wc -l) -eq 1
+    - test $(find webapp/dist -type f -name "*.js" | wc -l) -eq 1
+    - DEBUG_JS_SIZE=$(wc -c < webapp/dist/bundle.js)
+    - DEBUG_CSS_SIZE=$(wc -c < webapp/dist/main.css)
+
+    # 3. Production-Build & Minifizierungs-Prüfung
+    - npm run build
+    - BUILD_JS_SIZE=$(wc -c < webapp/dist/bundle.js)
+    - BUILD_CSS_SIZE=$(wc -c < webapp/dist/main.css)
+    - test "$BUILD_JS_SIZE" -le "$DEBUG_JS_SIZE"
+    - test "$BUILD_CSS_SIZE" -le "$DEBUG_CSS_SIZE"
+
+    # 4. Offizieller Start-Test an Port 8080 (npm start)
+    - npm start &
+    - SERVER_PID=$!
+    - sleep 2
+    - curl --fail --silent http://localhost:8080/ | grep -q "<html"
+    - curl --fail --silent http://localhost:8080/main.css > /dev/null
+    - curl --fail --silent http://localhost:8080/bundle.js > /dev/null
+    - kill $SERVER_PID
+
+    # 5. Test mit beliebigem Port über Kommandozeilenargument (z. B. Port 9090)
+    - node server/src/js/Server.mjs 9090 &
+    - SERVER_PID=$!
+    - sleep 2
+    - curl --fail --silent http://localhost:9090/ > /dev/null
+    - kill $SERVER_PID
+
+    # 6. Clean-Prozess verifizieren (alle generierten/heruntergeladenen Dateien gelöscht)
+    - npm run clean
+    - test ! -d "webapp/dist"
+    - test ! -d "node_modules"
+    - test ! -d "webapp/node_modules"
+    - test ! -d "server/node_modules"

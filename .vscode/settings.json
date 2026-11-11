@@ -1,0 +1,42 @@
+{
+  // Editor
+  "files.autoSave": "onFocusChange",
+  // Semistandard
+  "standard.engine": "semistandard",
+  "standard.enable": true,
+  "standard.run": "onType",
+  "standard.autoFixOnSave": true,
+  "standard.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "standard.treatErrorsAsWarnings": true,
+  "standard.options": {
+    "extensions": [
+      ".js",
+      ".mjs",
+      ".cjs"
+    ]
+  },
+  "standard.workingDirectories": [
+    ".",
+    "webapp",
+    "server"
+  ],
+  // Prettier
+  "prettier.requireConfig": true,
+  // Languages
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[less]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.formatOnSave": false
+  },
+}

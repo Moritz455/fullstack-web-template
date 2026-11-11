@@ -1,0 +1,12 @@
+{
+  "name": "lib",
+  "version": "1.0.1",
+  "description": "",
+  "main": "src/index.mjs",
+  "type": "commonjs",
+  "scripts": {
+    "lint": "semistandard \"src/**/*.mjs\" | snazzy",
+    "format": "semistandard --fix \"src/**/*.mjs\" | snazzy",
+    "test": "mocha \"test/**/*.mjs\""
+  }
+}

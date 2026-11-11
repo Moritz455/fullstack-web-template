@@ -1,0 +1,6 @@
+{
+  "fileExtensions": [".less", ".css"],
+  "excludedFiles": [],
+  "attributeQuotes": { "enabled": true, "severity": "error" },
+  "colorVariables": { "enabled": false, "severity": "error" }
+}

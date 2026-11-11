@@ -1,0 +1,35 @@
+{
+  "name": "webapp",
+  "version": "1.0.1",
+  "description": "",
+  "main": "src/js/Main.mjs",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "config": {
+    "engine-strict": true
+  },
+  "scripts": {
+    "clean": "npm run clean:dist && rm -rf node_modules",
+    "clean:dist": "rm -rf dist",
+    "lint": "semistandard \"src/js/**/*.mjs\" | snazzy && lesshint --reporter lesshint-reporter-stylish src/styles",
+    "format": "semistandard --fix \"src/js/**/*.mjs\" | snazzy",
+    "test": "mocha \"test/**/*.mjs\" ",
+    "html": "mkdir -p dist && cp src/index.html dist/index.html",
+    "css": "mkdir -p dist && lessc src/styles/main.less dist/main.css",
+    "css:minified": "mkdir -p dist && lessc --clean-css src/styles/main.less dist/main.css",
+    "js": "mkdir -p dist && esbuild src/js/Main.mjs --log-level=warning --bundle --outfile=dist/bundle.js",
+    "js:minified": "npm run js && terser dist/bundle.js --compress --mangle --comments=false -o dist/bundle.js",
+    "predebug": "npm run clean:dist",
+    "debug": "npm run html && npm run css && npm run js",
+    "prebuild": "npm run clean:dist",
+    "build": "npm run html && npm run css:minified && npm run js:minified"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "less": "^4.9.1",
+    "less-plugin-clean-css": "^1.6.0",
+    "terser": "^5.51.2"
+  },
+  "type": "commonjs"
+}
