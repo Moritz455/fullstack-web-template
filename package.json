@@ -9,6 +9,8 @@
     "lib"
   ],
   "scripts": {
+    "init": "node setup.mjs",
+    "setup": "node setup.mjs",
     "clean": "npm run clean:dist --workspaces --if-present && rm -rf node_modules webapp/node_modules server/node_modules",
     "lint": "npm run lint --workspaces",
     "format": "npm run format --workspaces --if-present",
